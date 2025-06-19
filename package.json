@@ -1,0 +1,32 @@
+{
+  "type": "module",
+  "name": "node-group",
+  "version": "0.1.0",
+  "private": false,
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && bun build:types",
+    "build:types": "tsc",
+    "preview": "vite preview",
+    "release:patch": "npm version patch && bun run build && npm publish"
+  },
+  "dependencies": {
+    "type-fest": "^4.31.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "eslint": "9.17.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-externalize-deps": "^0.9.0"
+  }
+}
