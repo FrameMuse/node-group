@@ -42,6 +42,13 @@ class GroupRelayElement extends HTMLElement implements CustomElementLifecycle {
 //   streamChildren?: boolean
 // }
 
+/**
+ * A minimal version of document that stores a segment of a document structure just like `DocumentFragment`.
+ * The key difference is that, it does affect the document and cause reflow when attached to a document,
+ * while it does not have explicit wrapper like regular elements.
+ * 
+ * [DOM Proposal](https://github.com/whatwg/dom/issues/736)
+ */
 class Group extends DocumentFragment implements ChildNode {
   /** @internal */
   orderedNodes = new OrderedList<Node & Partial<ChildNode>>
