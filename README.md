@@ -2,6 +2,8 @@
 
 Live virtual parent for nodes. Transparent group of nodes. No DOM patching. Production targeted.
 
+[StackBlitz Playground](https://stackblitz.com/edit/vitejs-vite-cqcbae5t?file=src%2Fmain.ts)
+
 ```js
 const parent1 = document.createElement("div")
 parent1.style.background = "hsl(0 40% 60%)"
@@ -51,7 +53,7 @@ VanillaJS can easily become the only tool I need to build UI on the daily.
 My proposal of `NodeGroup` and this implementation without DOM patching is my attempt to make this future closer.
 
 I'm also willing to (at least trying to) make this production-ready product,
-I'm and using this in React/SolidJS-like [ui building library](https://github.com/denshya/proton).
+I'm using this in React/SolidJS-like [ui building library](https://github.com/denshya/proton).
 
 ### "Ownership Sharing"
 
