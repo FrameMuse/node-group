@@ -8,6 +8,7 @@
   "files": [
     "build"
   ],
+  "sideEffects": false,
   "scripts": {
     "dev": "vite",
     "build": "vite build && bun build:types",
