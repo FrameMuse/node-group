@@ -74,7 +74,7 @@ class Group extends DocumentFragment implements ChildNode {
   /** @internal */
   connectedCallback() {
     // Append group nodes to targeted parent.
-    this.relayElement.after(...this.orderedNodes.values())
+    this.relayElement.after(...this.orderedNodes)
     // Return tap.
     super.appendChild(this.relayElement)
   }
@@ -89,29 +89,37 @@ class Group extends DocumentFragment implements ChildNode {
     this.orderedNodes.getFirst()?.before?.(...nodes)
   }
   remove(): void {
-    this.orderedNodes.values().filter(x => x != null).forEach(node => node.remove?.())
+    for (const node of this.orderedNodes) {
+      if (node == null) continue
+      node.remove?.()
+    }
   }
   replaceWith(...nodes: (Node | string)[]): void {
     this.after(...nodes)
-    this.orderedNodes.values().filter(x => x != null).filter(x => !nodes.includes(x)).forEach(node => node.remove?.())
+
+    for (const node of this.orderedNodes) {
+      if (node == null) continue
+
+      nodes.includes(node)
+      node.remove?.()
+    }
   }
 
 
   override get children() {
-    const elements = this.orderedNodes.values().filter(node => node instanceof HTMLElement).toArray()
+    const elements = [...this.orderedNodes].filter(node => node instanceof HTMLElement)
     const collection: HTMLCollection = elements as never
 
-
-    collection.item = index => elements[index] ?? null
-    collection.namedItem = name => elements.find(element => ((element as any).name || element.id) === name) ?? null
+    collection.item = NodeListItem
+    collection.namedItem = CollectionNamedItem
 
     return collection
   }
   override get childNodes() {
-    const nodes: ChildNode[] = this.orderedNodes.values().filter(node => node?.replaceWith != null).toArray() as ChildNode[]
+    const nodes: ChildNode[] = [...this.orderedNodes] as ChildNode[]
     const nodeList: NodeListOf<ChildNode> = nodes as never
 
-    nodeList.item = index => nodes[index] ?? null
+    nodeList.item = NodeListItem
     return nodeList
   }
 
@@ -131,29 +139,26 @@ class Group extends DocumentFragment implements ChildNode {
 
   override replaceChild<T extends Node>(node: Node, child: T): T {
     this.orderedNodes.replaceItem(child, node)
+
     return child
   }
   override replaceChildren(...nodes: (Node | string)[]): void {
-    nodes = nodes.map(createNode)
+    if (nodes.every(node => this.orderedNodes.has(node as Node))) return
 
-    const oldNodes = [...this.orderedNodes.values()]
-    if (nodes.every(node => oldNodes.includes(node as Node))) return
-
+    const oldNodesSnapshot = [...this.orderedNodes]
 
     this.orderedNodes.clear()
     this.append(...nodes)
 
-    oldNodes.at(-1)?.after?.(...nodes)
-    oldNodes.forEach(node => {
-      if (nodes.includes(node)) return
-      node.remove?.()
-    })
+    for (const oldNode of oldNodesSnapshot) {
+      if (nodes.includes(oldNode)) return
+      oldNode.remove?.()
+    }
   }
 
   override append(...nodes: (Node | string)[]): void {
     const realNodes = nodes.map(createNode)
 
-    // super.append(...realNodes)
     this.after(...realNodes)
 
     realNodes.forEach(node => this.orderedNodes.append(node))
@@ -161,7 +166,6 @@ class Group extends DocumentFragment implements ChildNode {
   override prepend(...nodes: (Node | string)[]): void {
     const realNodes = nodes.map(createNode)
 
-    // super.prepend(...realNodes)
     this.before(...realNodes)
 
     realNodes.forEach(node => this.orderedNodes.prepend(node))
@@ -177,9 +181,11 @@ class Group extends DocumentFragment implements ChildNode {
   override contains(other: Node | null): boolean { return !!other && this.orderedNodes.has(other) }
 
   override get textContent() {
-    if (this.orderedNodes.length === 0) return null
+    let result = ""
 
-    return this.orderedNodes.values().map(node => node?.textContent ?? "").toArray().join("")
+    for (const node of this.orderedNodes) { result += node.textContent }
+
+    return result
   }
 
   override get firstChild() {
@@ -205,4 +211,14 @@ export default Group
 function createNode(value: Node | string): Node {
   if (typeof value === "string") return new Text(value)
   return value
+}
+
+
+
+function NodeListItem<T>(this: Array<T>, index: number) {
+  return this[index]
+}
+
+function CollectionNamedItem<T extends Element>(this: Array<T>, name: string) {
+  return this.find(element => ((element as any).name || element.id) === name) ?? null
 }

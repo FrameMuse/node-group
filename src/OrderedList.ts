@@ -38,8 +38,6 @@ class OrderedList<T extends object> {
     if (index === -1) return
 
     this.items.splice(index, 0, newItem)
-
-    this.set.delete(reference)
     this.set.add(newItem)
   }
 
@@ -69,7 +67,7 @@ class OrderedList<T extends object> {
     this.set.clear()
   }
 
-  values() {
+  [Symbol.iterator]() {
     return this.items.values()
   }
 }
