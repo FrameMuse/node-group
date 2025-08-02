@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "node-group",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -26,8 +26,37 @@
     "eslint": "9.17.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "happy-dom": "^18.0.1",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vite-plugin-externalize-deps": "^0.9.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/framemuse/node-group.git"
+  },
+  "description": "Zero-runtime vanilla JavaScript library providing transparent DOM grouping via DocumentPersistentFragment - live parent semantics without wrappers, shadow roots or DOM patching.",
+  "keywords": [
+    "node-group",
+    "document-persistent-fragment",
+    "persistent-fragment",
+    "virtual-parent",
+    "transparent-group",
+    "dom-transparency",
+    "custom-element",
+    "dom-fragment",
+    "ownership-sharing",
+    "live-parent",
+    "vanilla-js",
+    "typescript",
+    "fragment-streaming",
+    "no-dom-patching",
+    "production"
+  ],
+  "author": "FrameMuse",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/framemuse/node-group/issues"
+  },
+  "homepage": "https://github.com/framemuse/node-group#readme"
 }

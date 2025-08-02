@@ -39,7 +39,8 @@
     "noEmitOnError": false
   },
   "include": [
-    "src"
+    "src",
+    "spec"
   ],
   "references": [
     {
