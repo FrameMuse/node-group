@@ -79,9 +79,12 @@ describe("Group behaviour", () => {
 
   })
 
-  it("should replace all children without losing remoteness", () => {
+  it("should replace all children without losing remoteness", async () => {
+    const comment = new Comment("$")
+
     const group = new Group
-    group.append("Y")
+    group.append(comment)
+
 
     const container = document.createElement("div")
     container.append(group)
@@ -91,6 +94,18 @@ describe("Group behaviour", () => {
 
     expect(group.textContent).toBe("X")
     expect(container.innerHTML).toBe("X")
+
+    group.replaceChildren(comment)
+    group.replaceChildren("J", "Y")
+
+    expect(group.textContent).toBe("JY")
+    expect(container.innerHTML).toBe("JY")
+
+    group.replaceChildren(comment)
+    group.replaceChildren("J2", "Y2")
+
+    expect(group.textContent).toBe("J2Y2")
+    expect(container.innerHTML).toBe("J2Y2")
   })
 })
 

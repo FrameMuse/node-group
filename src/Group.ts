@@ -149,12 +149,11 @@ class Group extends DocumentFragment implements ChildNode {
 
     this.append(...nodes)
 
-    for (let i = 0; i < oldNodesSnapshot.length; i++) {
-      const oldNode = oldNodesSnapshot[i]
+    for (const oldNode of oldNodesSnapshot) {
       if (nodes.includes(oldNode)) continue
 
       oldNode.remove?.()
-      this.orderedNodes.deleteAt(i)
+      this.orderedNodes.delete(oldNode)
     }
   }
 

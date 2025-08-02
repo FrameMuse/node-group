@@ -7,7 +7,7 @@ class OrderedList<T extends object> {
 
   append(...items: T[]): void {
     for (const item of items) {
-      if (this.set.has(item)) return
+      if (this.set.has(item)) continue
 
       this.items.push(item)
       this.set.add(item)
@@ -16,7 +16,7 @@ class OrderedList<T extends object> {
 
   prepend(...items: T[]): void {
     for (const item of items) {
-      if (this.set.has(item)) return
+      if (this.set.has(item)) continue
 
       this.items.unshift(item)
       this.set.add(item)
@@ -63,12 +63,6 @@ class OrderedList<T extends object> {
 
     this.items.splice(index, 1)
     this.set.delete(item)
-    return true
-  }
-
-  deleteAt(index: number): boolean {
-    this.set.delete(this.items[index])
-    this.items.splice(index, 1)
     return true
   }
 
