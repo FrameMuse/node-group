@@ -4,7 +4,7 @@ Live virtual parent for nodes. Transparent group of nodes. No DOM patching. Prod
 
 [npm package](https://www.npmjs.com/package/node-group)
 
-[StackBlitz Playground](https://stackblitz.com/edit/vitejs-vite-cqcbae5t?file=src%2Fmain.ts)
+[StackBlitz Playground](https://stackblitz.com/edit/node-group)
 
 ```js
 const parent1 = document.createElement("div")
