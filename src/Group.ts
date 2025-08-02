@@ -143,16 +143,18 @@ class Group extends DocumentFragment implements ChildNode {
     return child
   }
   override replaceChildren(...nodes: (Node | string)[]): void {
-    if (nodes.every(node => this.orderedNodes.has(node as Node))) return
+    if (nodes.every(node => this.orderedNodes.has(node))) return
 
     const oldNodesSnapshot = [...this.orderedNodes]
 
-    this.orderedNodes.clear()
     this.append(...nodes)
 
-    for (const oldNode of oldNodesSnapshot) {
-      if (nodes.includes(oldNode)) return
+    for (let i = 0; i < oldNodesSnapshot.length; i++) {
+      const oldNode = oldNodesSnapshot[i]
+      if (nodes.includes(oldNode)) continue
+
       oldNode.remove?.()
+      this.orderedNodes.deleteAt(i)
     }
   }
 
@@ -160,15 +162,13 @@ class Group extends DocumentFragment implements ChildNode {
     const realNodes = nodes.map(createNode)
 
     this.after(...realNodes)
-
-    realNodes.forEach(node => this.orderedNodes.append(node))
+    this.orderedNodes.append(...realNodes)
   }
   override prepend(...nodes: (Node | string)[]): void {
     const realNodes = nodes.map(createNode)
 
     this.before(...realNodes)
-
-    realNodes.forEach(node => this.orderedNodes.prepend(node))
+    this.orderedNodes.prepend(...realNodes)
   }
 
   override insertBefore<T extends Node>(node: T, child: Node | null): T {

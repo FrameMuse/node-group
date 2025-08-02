@@ -5,18 +5,22 @@ class OrderedList<T extends object> {
 
   get length() { return this.items.length }
 
-  append(item: T): void {
-    if (this.set.has(item)) return
+  append(...items: T[]): void {
+    for (const item of items) {
+      if (this.set.has(item)) return
 
-    this.items.push(item)
-    this.set.add(item)
+      this.items.push(item)
+      this.set.add(item)
+    }
   }
 
-  prepend(item: T): void {
-    if (this.set.has(item)) return
+  prepend(...items: T[]): void {
+    for (const item of items) {
+      if (this.set.has(item)) return
 
-    this.items.unshift(item)
-    this.set.add(item)
+      this.items.unshift(item)
+      this.set.add(item)
+    }
   }
 
   replaceItem(oldItem: T, newItem: T): void {
@@ -49,16 +53,22 @@ class OrderedList<T extends object> {
     return this.items[this.items.length - 1]
   }
 
-  has(item: T): boolean {
-    return this.set.has(item)
+  has(item: unknown): boolean {
+    return this.set.has(item as never)
   }
 
   delete(item: T): boolean {
     const index = this.items.indexOf(item)
     if (index === -1) return false
 
-    this.items.splice(index, 0)
+    this.items.splice(index, 1)
     this.set.delete(item)
+    return true
+  }
+
+  deleteAt(index: number): boolean {
+    this.set.delete(this.items[index])
+    this.items.splice(index, 1)
     return true
   }
 
