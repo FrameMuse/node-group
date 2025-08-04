@@ -67,47 +67,26 @@ This implementation is exactly about fragments, which allows proper "Ownership S
 
 ## Serialization/Parsing
 
-The plan is to implement either range-based grouping
-
-```html
-<div>
-  <group-relay data-range="4"></group-relay>
-  <!-- Three next nodes, including comments -->
-  <div>1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>Not included</div>
-</div>
-```
-
-or children-based one
-
-```html
-<div>
-  <group-relay>
-    <!-- Three next nodes, including comments -->
-    <div>1</div>
-    <div>2</div>
-    <div>3</div>
-  </group-relay>
-  <div>Not included</div>
-</div>
-```
-
-You can do it yourself by using [@robbiespeed comment](https://github.com/whatwg/dom/issues/736#issuecomment-2759861429).
+The plan is to implement widely accepted standard that used by frameworks like React, which is based on comment nodes (`<!--$-->`)
+that can be customized for wider usage.
 
 ## Naming
 
 One of the proposed feature of `NodeGroup` is **named groups**.
 
 ```html
-<group-relay name="myGroup"></group-relay>
+<!--$Named-->
+<!--/$Named-->
+```
+```html
+<!--<Named>-->
+<!--</Named>-->
 ```
 
 Which are parsed and added to `document.groups` by names.
 This is not possible without DOM patching (even little one).
 
-If anyone shows interest in having this feature, it can be added as `Group.list`.
+If anyone shows interest in having this feature, it can be added as `Group.list` (or similar).
 
 ## Parent Strategies
 
