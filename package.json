@@ -4,7 +4,7 @@
   "version": "0.1.3",
   "private": false,
   "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "types": "build/src/index.d.ts",
   "files": [
     "build"
   ],
