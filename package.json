@@ -16,9 +16,7 @@
     "preview": "vite preview",
     "release:patch": "npm version patch && bun run build && npm publish"
   },
-  "dependencies": {
-    "type-fest": "^4.31.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/bun": "latest",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
