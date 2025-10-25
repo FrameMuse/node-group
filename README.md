@@ -2,9 +2,12 @@
 
 Live virtual parent for nodes. Transparent group of nodes. No DOM patching. Production targeted.
 
-[npm package](https://www.npmjs.com/package/node-group)
-
-[StackBlitz Playground](https://stackblitz.com/edit/node-group)
+  <a href="https://www.npmjs.com/package/node-group">
+    <img src="https://img.shields.io/npm/v/node-group?color=007ec6" />
+    <img alt="npm package minimized gzipped size" src="https://img.shields.io/bundlejs/size/node-group">
+  </a>
+  <a href="http://commitizen.github.io/cz-cli/"><img src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg" alt="Commitizen friendly" /></a>
+  <a href="https://stackblitz.com/edit/node-group"><img alt="Static Badge" src="https://img.shields.io/badge/Playground%20Available-1389fd?logo=lightning"></a>
 
 ```js
 const parent1 = document.createElement("div")
