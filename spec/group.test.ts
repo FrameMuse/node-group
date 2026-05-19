@@ -115,15 +115,13 @@ describe("Group between disconnected parents", () => {
   it("should place children in the last parent when moved between disconnected parents", () => {
     const parent1 = document.createElement("div")
     const parent2 = document.createElement("div")
-    const parent3 = document.createElement("div")
 
     const group = new Group
     group.append("A", "B", "C")
 
     // Both parents are disconnected from the DOM, no lifecycle callbacks fire.
     parent1.append(group)
-    parent2.append(group.recollect())
-    parent3.append(group)
+    parent2.append(group)
 
     // Now connect both parents to the DOM.
     document.body.append(parent1, parent2)
@@ -131,7 +129,6 @@ describe("Group between disconnected parents", () => {
     // Children should land in parent2, the last parent the group was moved to.
     expect(parent1.textContent).toBe("")
     expect(parent2.textContent).toBe("ABC")
-    expect(parent3.textContent).toBe("")
   })
 })
 

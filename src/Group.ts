@@ -1,36 +1,6 @@
 import OrderedList from "./OrderedList"
 import { CollectionNamedItem, createNode, NodeListItem } from "./utils"
 
-interface CustomElementLifecycle {
-  connectedCallback?(): void;
-  disconnectedCallback?(): void;
-  attributeChangedCallback?(name: string, oldValue: string | null, newValue: string | null): void;
-}
-
-/** @internal */
-class GroupRelayElement extends HTMLElement implements CustomElementLifecycle {
-  declare readonly group?: Group
-
-  connectedCallback() {
-    if (this.group == null) return this.remove()
-    this.group.connectedCallback()
-  }
-
-  disconnectedCallback() {
-    if (this.group == null) return
-    this.group.disconnectedCallback()
-  }
-
-  override remove(): void { this.group?.remove() }
-  override get textContent() { return this.group?.textContent ?? "" }
-
-  static readonly TAG = "group-relay"
-  static {
-    if (window.customElements.get(GroupRelayElement.TAG) == null) {
-      window.customElements.define(GroupRelayElement.TAG, GroupRelayElement)
-    }
-  }
-}
 
 
 // interface GroupOptions {
@@ -51,34 +21,14 @@ class GroupRelayElement extends HTMLElement implements CustomElementLifecycle {
  * 
  * [DOM Proposal](https://github.com/whatwg/dom/issues/736)
  */
-class Group extends DocumentFragment implements ChildNode {
+class Group extends HTMLElement implements ChildNode {
   /** @internal */
   orderedNodes = new OrderedList<Node & Partial<ChildNode>>
 
-  /**
-   * Connection event relay element.
-   * Initially added to the group.
-   *
-   * When group brings nodes to a parent, relay element relays connection callbacks and returns back to group.
-   * 
-   * @internal
-   */
-  relayElement = document.createElement(GroupRelayElement.TAG) as GroupRelayElement
-
-  constructor() {
-    super()
-
-    super.appendChild(this.relayElement)
-    // @ts-expect-error yes
-    this.relayElement.group = this
-  }
-
   /** @internal */
   connectedCallback() {
-    // Append group nodes to targeted parent.
-    this.relayElement.after(...this.orderedNodes)
-    // Return relay.
-    super.appendChild(this.relayElement)
+    super.after(...this.orderedNodes)
+    super.remove()
   }
 
   /** @internal */
@@ -107,28 +57,6 @@ class Group extends DocumentFragment implements ChildNode {
     }
   }
 
-  /**
-   * Returns the relay (pointer) element back.
-   * Allows move operations (append/prepend) on diconnected parents.
-   * 
-   * @example
-   * const group = new Group
-   * group.append("A", "B", "C")
-   * 
-   * parent1.append(group)
-   * parent2.append(group.recollect()) // Moved.
-   * parent3.append(group) // Ignored.
-   * 
-   * document.body.append(parent1, parent2, parent3)
-   */
-  recollect() {
-    if (this.relayElement.parentNode !== this) {
-      super.appendChild(this.relayElement)
-    }
-
-    return this
-  }
-
   override get children() {
     const elements = [...this.orderedNodes].filter(node => node instanceof HTMLElement)
     const collection: HTMLCollection = elements as never
@@ -149,7 +77,7 @@ class Group extends DocumentFragment implements ChildNode {
 
 
   override appendChild<T extends Node>(node: T): T {
-    if (node === this.relayElement as never) return node
+    if (node === this) return node
 
     this.orderedNodes.append(node)
     this.after(node)
@@ -219,6 +147,11 @@ class Group extends DocumentFragment implements ChildNode {
   }
 
   override hasChildNodes(): boolean { return this.orderedNodes.length > 0 }
+
+  static readonly TAG = "group-pointer"
+  static {
+    window.customElements.define(Group.TAG, Group)
+  }
 }
 
 export default Group
