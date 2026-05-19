@@ -107,6 +107,27 @@ class Group extends DocumentFragment implements ChildNode {
     }
   }
 
+  /**
+   * Returns the relay (pointer) element back.
+   * Allows move operations (append/prepend) on diconnected parents.
+   * 
+   * @example
+   * const group = new Group
+   * group.append("A", "B", "C")
+   * 
+   * parent1.append(group)
+   * parent2.append(group.recollect()) // Moved.
+   * parent3.append(group) // Ignored.
+   * 
+   * document.body.append(parent1, parent2, parent3)
+   */
+  recollect() {
+    if (this.relayElement.parentNode !== this) {
+      super.appendChild(this.relayElement)
+    }
+
+    return this
+  }
 
   override get children() {
     const elements = [...this.orderedNodes].filter(node => node instanceof HTMLElement)

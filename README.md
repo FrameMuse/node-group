@@ -65,6 +65,46 @@ I'm using this in React/SolidJS-like [ui building library](https://github.com/de
 
 This implementation is exactly about fragments, which allows proper "Ownership Sharing" in VanillaJS.
 
+## Disconnected Parents
+
+Custom elements only fires connection callback when they enter or leave a **connected** DOM tree.
+When a `Group` is moved between two disconnected parents, no lifecycle callbacks fire, which can cause the group children to be in a stale parent when they get connected.
+
+### Problem
+
+When parents are not connected,
+DOM provides **NO WAY** to trigger updates on connected/disconnected state.
+
+- `connectedCallback`/`disconnectedCallback` are not invoked.
+- `MutationObserver` is not updated.
+- `ResizeObserver` is not updated.
+- `InteractiveObserver` is not updated.
+
+```js
+parent1.append(group) // Appends Group Relay (pointer) element.
+parent2.append(group) // Appends empty group since `connectedCallback` wasn't invoked.
+
+document.body.append(parent1, parent2)
+// parent1.textContent // => "ABC"
+// parent2.textContent // => ""
+```
+
+###
+
+Call `.recollect()` to pull the relay element back into the `Group` before the next append "manually".
+
+```js
+parent1.append(group)
+parent2.append(group.recollect()) // relay returns to group, now movable
+
+document.body.append(parent1, parent2)
+// parent1.textContent === ""    ✅
+// parent2.textContent === "ABC" ✅
+```
+
+It is possible to call `recollect` on each append to make sure it's always ready to be re-appended,
+consequent calls to `recollect` will not do anything, allowing "just-in-case" calls.
+
 ## Serialization/Parsing
 
 The plan is to implement widely accepted standard that used by frameworks like React, which is based on comment nodes (`<!--$-->`)
@@ -78,6 +118,7 @@ One of the proposed feature of `NodeGroup` is **named groups**.
 <!--$Named-->
 <!--/$Named-->
 ```
+
 ```html
 <!--<Named>-->
 <!--</Named>-->
