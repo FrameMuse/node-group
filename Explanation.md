@@ -1,0 +1,190 @@
+*For this library, the following would be true:*
+
+Consider you have this `Group` setup:
+```js
+const group = new Group
+group.append("A", "B", "C")
+```
+Then the diagram would be:
+```js
+Group
+ ├─ A
+ ├─ B
+ └─ C
+
+document
+└─ body // No children.
+```
+
+Adding a group to a parent (that is attached to `document`, it is required due to `connectedCallback` reliance) would look like that:
+```js
+const parent = document.createElement("div")
+parent.append(group)
+
+// document.body.append(parent) // The order doesn't matter, though for group to appear in the `parent`, must be attached to a `document` in some way.
+```
+This diagram would represent it:
+```js
+Group
+ ├─ A
+ ├─ B
+ └─ C
+
+document
+└─ body
+   ├─ A
+   ├─ B
+   └─ C
+```
+
+Let's break down this diagram in terms of properties (interfaces):
+
+- Accessing any properties of `group` will (*should*) be 100% same as `DocumentFragment` in the moment it is not yet connected anywhere (which flushes its children), expect those that are `null` by design like `nextSibling` or `parent`.
+- `childNodes` of `group` are both in `group` and `document.body`
+```js
+group.childNodes // ["A", "B", "C"]
+document.body.childNodes // ["A", "B", "C"]
+```
+- `parent` return the parent where `group` was previously attached to - the same with other properties.
+
+In short, `group` behaves just like a normal `ParentNode`.
+
+---
+
+That was a simple part, let's see what probably confuses people:
+
+- `group` node itself can't be find in the `document`, even if attached and `parent` property shows it is. :exploding_head: 
+- `group` node doesn't have a wrapper and is completely transparent to CSS selectors, Box View Model and Layout.
+
+In short, `group` is a virtual node, but faking to be real `ParentNode`.
+Another interpretation would be "a `NodeList` with `ParentNode` and `ChildNode` interfaces".
+
+---
+
+Unaffected `group` children for special elements like `table`, `select`:
+In contradiction to other parent elements, `group` will never mess up with its children, they are attached as given, you will never face a situation where elements are forcefully formatted in `group` node when it's being attached since `group` is a limbo.
+
+---
+
+Adding `group` in between other elements:
+
+```js
+group.append(A, B, C)
+document.body.append(X, Y, Z)
+```
+:arrow_down: 
+```js
+Group
+├─ A
+├─ B
+└─ C
+
+(document)
+└─ body
+   ├─ X
+   ├─ Y
+   └─ Z
+```
+
+Now let's add the `group` before `Y`
+```js
+document.body.insertBefore(group, Y)
+```
+:arrow_down: 
+```js
+Group
+├─ A
+├─ B
+└─ C
+
+(document)
+└─ body
+   ├─ X
+   ├─ A
+   ├─ B
+   ├─ C
+   ├─ Y
+   └─ Z
+```
+
+Expectations
+```js
+console.log(group.firstChild === A)          // true
+console.log(A.parentNode === document.body)  // true
+console.log(X.nextSibling === A)             // true
+console.log(C.nextSibling === Y)             // true
+```
+
+---
+
+Accessing properties of children that are part of `group`:
+Reading node properties always reflects the "real" tree - not the `Group` logical ownership.
+
+```js
+group.append(A, B, C)
+```
+:arrow_down: 
+```js
+Group
+├─ A
+├─ B
+└─ C
+
+(document)
+└─ body // No children.
+```
+:arrow_down: 
+```js
+console.log(group.firstChild === A)  // true
+console.log(A.parentNode === null)   // true
+console.log(A.isConnected === false) // true
+console.log(A.nextSibling === null)  // true
+```
+
+Now connect `group`
+
+```js
+document.body.append(group)
+```
+:arrow_down: 
+```js
+Group
+├─ A
+├─ B
+└─ C
+
+(document)
+└─ body
+   ├─ A
+   ├─ B
+   └─ C
+```
+:arrow_down: 
+```js
+console.log(group.firstChild === A)           // true
+console.log(A.parentNode === document.body)   // true
+console.log(A.isConnected === true)           // true
+console.log(A.nextSibling === B)              // true
+```
+
+While this may look confusing and not intuitive, in practice it's not bothering at all since `group` is treated as `NodeList` you can put to the `document` with `append` method.
+
+---
+
+## Comparing this behavior to Figma and Photoshop
+
+| Feature / Expectation                         | Figma                                                                   | `NodeGroup`                                                                                         |                                                                      Impact (what breaks in mental model) |
+| --------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------: |
+| Group is a real parent / folder               | Group is a first-class parent node in the layer tree.                   | `Group` is a logical owner; children remain real DOM nodes with real DOM parents.                   | Users expect `node.parent === group`. They get physical parents instead. Confusion and buggy assumptions. |
+| Move group = single operation                 | Move folder moves children as a single unit in UI and undo stacks.      | Moving group inserts/moves each child individually in DOM (multiple DOM ops).                       |                                      More DOM mutations, more expensive reflows, different undo behavior. |
+| Folder-level transforms / masks / blend modes | Transform/mask applies once to the folder and cascades to children.     | No inherent group-level composition; must apply transforms per child or wrap in container.          |                                                      Hard to apply group transforms or masks efficiently. |
+| Querying / CSS selectors                      | Layers/folders can be targeted by UI layer queries.                     | DOM selectors operate on real DOM only; logical grouping is invisible to CSS selectors.             |                                                 Selectors, `querySelector`, and CSS cannot target groups. |
+| Event path / pointer capture                  | Events and selection operate on the folder as a node.                   | group object does not appear in `composedPath()`.                                                   |                                     Event handling assumptions break; `event.target` never shows `group`. |
+| Instances / components                        | Components and instances are first-class: detach, reset, overrides.     | `Group` is a class with lifecycle inherited from Custom Element.                                    |                                                                                                        OK |
+| DevTools visibility                           | Layers panel shows the folder.                                          | DevTools show only DOM nodes; Group object is invisible unless you add debugging Comment nodes.     |                                                      Harder to inspect group membership in browser tools. |
+| Performance for many children                 | Folder move is a single conceptual operation;                           | Inserting many children may trigger many reflows/mutations if not batched.                          |                                                                                                         ? |
+| Serialization / export                        | Groups serialize naturally in layer/export formats.                     | Group is a logical list; exporting DOM may lose the group unless there is a custom serialization.   |                                           Harder to export the group structure for tools or file formats. |
+| CSS layout / stacking context                 | Folder can create a stacking context / transform once for all children. | Without a wrapper each child may need its own stacking context; group-level stacking not automatic. |                                                    Visual composition differs from designer expectations. |
+| Predictable `parentNode` / DOM navigation     | `node.parent` matches group.                                            | `node.parentNode`, `nextSibling`, etc., always reflect real DOM.                                    |                                                 Code that navigates DOM expecting group semantics breaks. |
+
+This comparison is not fair though since `Group` in Figma has a limited inheritance, which makes sense, while in JS DOM we can just use another `div` wrapper.
