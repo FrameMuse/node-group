@@ -77,7 +77,7 @@ class Group extends HTMLElement implements ChildNode {
 
 
   override appendChild<T extends Node>(node: T): T {
-    if (node === this) return node
+    if (node === this as never) return node
 
     this.orderedNodes.append(node)
     this.after(node)
