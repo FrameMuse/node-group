@@ -98,11 +98,11 @@ Call `.recollect()` to pull the relay element back into the `Group` before the n
 
 ```js
 parent1.append(group)
-parent2.append(group.recollect()) // relay returns to group, now movable
+parent2.append(group.recollect()) // Takes relay (pointer) element back to group and appends it again.
 
 document.body.append(parent1, parent2)
-// parent1.textContent === ""    ✅
-// parent2.textContent === "ABC" ✅
+// parent1.textContent // => ""
+// parent2.textContent // => "ABC"
 ```
 
 It is possible to call `recollect` on each append to make sure it's always ready to be re-appended,
