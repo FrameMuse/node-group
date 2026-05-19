@@ -1,4 +1,5 @@
 import OrderedList from "./OrderedList"
+import { CollectionNamedItem, createNode, NodeListItem } from "./utils"
 
 interface CustomElementLifecycle {
   connectedCallback?(): void;
@@ -8,19 +9,20 @@ interface CustomElementLifecycle {
 
 /** @internal */
 class GroupRelayElement extends HTMLElement implements CustomElementLifecycle {
-  declare readonly group: Group
+  declare readonly group?: Group
 
   connectedCallback() {
-    this.hidden = true
+    if (this.group == null) return this.remove()
     this.group.connectedCallback()
   }
 
   disconnectedCallback() {
+    if (this.group == null) return
     this.group.disconnectedCallback()
   }
 
-  override remove(): void { this.group.remove() }
-  override get textContent() { return this.group.textContent }
+  override remove(): void { this.group?.remove() }
+  override get textContent() { return this.group?.textContent ?? "" }
 
   static readonly TAG = "group-relay"
   static {
@@ -75,7 +77,7 @@ class Group extends DocumentFragment implements ChildNode {
   connectedCallback() {
     // Append group nodes to targeted parent.
     this.relayElement.after(...this.orderedNodes)
-    // Return tap.
+    // Return relay.
     super.appendChild(this.relayElement)
   }
 
@@ -196,28 +198,6 @@ class Group extends DocumentFragment implements ChildNode {
   }
 
   override hasChildNodes(): boolean { return this.orderedNodes.length > 0 }
-
-  // override getElementById(elementId: string): HTMLElement | null {}
-
-  // static parentOf(child: ChildNode): Group | ParentNode | null {
-  //   if (child instanceof)
-  //     return child.parentNode
-  // }
 }
 
 export default Group
-
-function createNode(value: Node | string): Node {
-  if (typeof value === "string") return new Text(value)
-  return value
-}
-
-
-
-function NodeListItem<T>(this: Array<T>, index: number) {
-  return this[index]
-}
-
-function CollectionNamedItem<T extends Element>(this: Array<T>, name: string) {
-  return this.find(element => ((element as any).name || element.id) === name) ?? null
-}
