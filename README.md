@@ -107,14 +107,13 @@ Both these approaches cause confusion ([@justinfagnani comment](https://github.c
 
 ## How it works
 
-It uses custom element lifecycle callbacks to indicate where `Group`, which extends `DocumentFragment`, was attached to.
-Then the custom element, i.e. `<group-relay />` is returned back to `Group` for future attachments.
+`Group` extends `HTMLElement` and registers a custom element `group-relay`,
+which behaves as a container and the pointer to where the children should go.
 
 `Group` overrides several properties and methods to pretend it is attached to a parent and is actively carrying nodes.
-`<group-relay />` also overrides properties and methods to mirror `Group` behavior in case it is mistakenly referenced somewhere.
 
-> [!Note]
-> Don't worry, referencing or manipulate `<group-relay />` should be ok.
-> It acts as `Group`, `DocumentFragment` can't exist in DOM while custom elements can, so `Group` needs a relay.
->
-> `<group-relay />` represents a live `Group` node, but as relaying mechanism, that's why it's called `group-relay`.
+`Group` can be newable as per this DOM spec - [custom-elements-autonomous-example](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements-autonomous-example). So it's possible to do `new class Group extends HTMLElement { }` if it was registered via `customElements.define`.
+
+`group-relay` custom element is not actively attached, it's removed once it moves children to the target parent.
+
+`group-relay` acts only as a pointer where the children go to.
