@@ -150,7 +150,9 @@ class Group extends HTMLElement implements ChildNode {
 
   static readonly TAG = "group-pointer"
   static {
-    window.customElements.define(Group.TAG, Group)
+    if (window.customElements.get(Group.TAG) == null) {
+      window.customElements.define(Group.TAG, Group)
+    }
   }
 }
 
