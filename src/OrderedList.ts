@@ -15,12 +15,25 @@ class OrderedList<T extends object> {
   }
 
   prepend(...items: T[]): void {
-    for (const item of items) {
-      if (this.set.has(item)) continue
+    const fresh = items.filter(item => !this.set.has(item))
+    for (const item of fresh) this.set.add(item)
+    this.items.unshift(...fresh)
+  }
 
-      this.items.unshift(item)
-      this.set.add(item)
+  /** Replaces the whole sequence, dropping duplicates. */
+  reset(items: readonly T[]): void {
+    this.items = []
+    this.set.clear()
+    this.append(...items)
+  }
+
+  /** Whether the list holds exactly `items`, in this order. */
+  equals(items: readonly unknown[]): boolean {
+    if (items.length !== this.items.length) return false
+    for (let index = 0; index < items.length; index++) {
+      if (items[index] !== this.items[index]) return false
     }
+    return true
   }
 
   replaceItem(oldItem: T, newItem: T): void {

@@ -47,12 +47,12 @@ class Group extends HTMLElement implements ChildNode {
     }
   }
   replaceWith(...nodes: (Node | string)[]): void {
-    this.after(...nodes)
+    const realNodes = nodes.map(createNode)
+    this.after(...realNodes)
 
+    const kept = new Set<Node>(realNodes)
     for (const node of this.orderedNodes) {
-      if (node == null) continue
-
-      nodes.includes(node)
+      if (node == null || kept.has(node)) continue
       node.remove?.()
     }
   }
@@ -79,33 +79,45 @@ class Group extends HTMLElement implements ChildNode {
   override appendChild<T extends Node>(node: T): T {
     if (node === this as never) return node
 
-    this.orderedNodes.append(node)
     this.after(node)
+    this.orderedNodes.append(node)
     return node
   }
   override removeChild<T extends Node>(child: T): T {
-    this.orderedNodes.delete(child)
+    if (this.orderedNodes.delete(child)) (child as Partial<ChildNode>).remove?.()
     return child
   }
 
   override replaceChild<T extends Node>(node: Node, child: T): T {
+    if (node === child as Node) return child
+    if (this.orderedNodes.has(child) === false) return child
+
+    this.orderedNodes.delete(node)
+    ;(child as Partial<ChildNode>).replaceWith?.(node)
     this.orderedNodes.replaceItem(child, node)
 
     return child
   }
   override replaceChildren(...nodes: (Node | string)[]): void {
-    if (nodes.every(node => this.orderedNodes.has(node))) return
+    const realNodes = nodes.map(createNode)
+    if (this.orderedNodes.equals(realNodes)) return
 
-    const oldNodesSnapshot = [...this.orderedNodes]
+    const oldNodes = [...this.orderedNodes]
+    const kept = new Set<Node>(realNodes)
 
-    this.append(...nodes)
-
-    for (const oldNode of oldNodesSnapshot) {
-      if (nodes.includes(oldNode)) continue
-
-      oldNode.remove?.()
-      this.orderedNodes.delete(oldNode)
+    // Place the new sequence before an outgoing child. `before` is used rather than `parentNode`
+    // checks so nested groups (which never sit in the DOM themselves) delegate to their own nodes.
+    if (realNodes.length > 0) {
+      const anchor = oldNodes.find(node => kept.has(node) === false) ?? oldNodes[0]
+      anchor?.before?.(...realNodes)
     }
+
+    for (const oldNode of oldNodes) {
+      if (kept.has(oldNode)) continue
+      oldNode.remove?.()
+    }
+
+    this.orderedNodes.reset(realNodes)
   }
 
   override append(...nodes: (Node | string)[]): void {
@@ -122,9 +134,17 @@ class Group extends HTMLElement implements ChildNode {
   }
 
   override insertBefore<T extends Node>(node: T, child: Node | null): T {
-    if (child != null) {
-      this.orderedNodes.insertBeforeItem(child, node)
+    if (node === child as Node) return node
+    if (child == null || this.orderedNodes.has(child) === false) {
+      // Moving an existing child to the end: drop it first so `append` re-adds it.
+      this.orderedNodes.delete(node)
+      this.append(node)
+      return node
     }
+
+    this.orderedNodes.delete(node)
+    ;(child as Partial<ChildNode>).before?.(node)
+    this.orderedNodes.insertBeforeItem(child, node)
     return node
   }
 
